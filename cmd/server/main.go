@@ -27,7 +27,7 @@ import (
 // runMigrations запускает миграции базы данных
 func runMigrations(dsn string) error {
 	m, err := migrate.New(
-		"file://internal/migrations",
+		"file:///app/internal/migrations", // абсолютный путь
 		dsn,
 	)
 	if err != nil {
