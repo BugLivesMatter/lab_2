@@ -97,6 +97,8 @@ func main() {
 	// Хендлер
 	authHandler := authhandler.NewAuthHandler(authService)
 
+	passwordHandler := authhandler.NewPasswordHandler(authService)
+
 	// Middleware
 	authMW := authmiddleware.AuthMiddleware(jwtService)
 	/*
@@ -120,6 +122,9 @@ func main() {
 		publicAuth.POST("/register", authHandler.Register)
 		publicAuth.POST("/login", authHandler.Login)
 		publicAuth.POST("/refresh", authHandler.Refresh)
+
+		publicAuth.POST("/forgot-password", passwordHandler.ForgotPassword)
+		publicAuth.POST("/reset-password", passwordHandler.ResetPassword)
 	}
 
 	// ========== PROTECTED ROUTES (с авторизацией) ==========

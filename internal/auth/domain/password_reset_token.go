@@ -9,13 +9,12 @@ import (
 
 // PasswordResetToken представляет токен сброса пароля
 type PasswordResetToken struct {
-	ID        uuid.UUID      `gorm:"type:uuid;primaryKey" json:"id"`
-	UserID    uuid.UUID      `gorm:"type:uuid;not null" json:"userId"`
-	Token     string         `gorm:"type:varchar(255);not null;uniqueIndex" json:"token"`
-	ExpiresAt time.Time      `gorm:"type:timestamptz;not null" json:"expiresAt"`
-	Used      bool           `gorm:"default:false" json:"used"`
-	CreatedAt time.Time      `gorm:"type:timestamptz;default:now()" json:"createdAt"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	UserID    uuid.UUID `gorm:"type:uuid;not null" json:"userId"`
+	Token     string    `gorm:"type:varchar(255);not null;uniqueIndex" json:"token"`
+	ExpiresAt time.Time `gorm:"type:timestamptz;not null" json:"expiresAt"`
+	Used      bool      `gorm:"default:false" json:"used"`
+	CreatedAt time.Time `gorm:"type:timestamptz;default:now()" json:"createdAt"`
 }
 
 // TableName указывает имя таблицы в БД
