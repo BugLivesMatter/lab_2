@@ -9,12 +9,12 @@ import (
 // RefreshToken хранит информацию о сессиях пользователя
 // Токен хранится в БД в хешированном виде для безопасности
 type RefreshToken struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
-	UserID    uuid.UUID `gorm:"type:uuid;not null;index"`
-	TokenHash string    `gorm:"not null;uniqueIndex"` // Хеш токена, не сам токен!
-	ExpiresAt time.Time `gorm:"not null"`
-	Revoked   bool      `gorm:"default:false"`
-	CreatedAt time.Time
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	UserID    uuid.UUID `gorm:"type:uuid;not null" json:"userId"`
+	TokenHash string    `gorm:"type:text;not null;uniqueIndex" json:"-"`
+	ExpiresAt time.Time `gorm:"type:timestamptz;not null" json:"expiresAt"`
+	Revoked   bool      `gorm:"default:false" json:"revoked"`
+	CreatedAt time.Time `gorm:"type:timestamptz;default:now()" json:"createdAt"`
 }
 
 // TableName указывает имя таблицы в БД

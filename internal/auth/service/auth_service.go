@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,14 +24,17 @@ type AuthService interface {
 	Logout(ctx context.Context, refreshToken string) error
 	LogoutAll(ctx context.Context, userID uuid.UUID) error
 	GetUserByID(ctx context.Context, userID uuid.UUID) (*domain.UserResponse, error)
+	ForgotPassword(ctx context.Context, email string) error
+	ResetPassword(ctx context.Context, token, newPassword string) error
 }
 
 // authServiceImpl реализует интерфейс AuthService
 type authServiceImpl struct {
-	userRepo  repository.UserRepository
-	tokenRepo repository.TokenRepository
-	passSvc   PasswordService
-	jwtSvc    JWTService
+	userRepo       repository.UserRepository
+	tokenRepo      repository.TokenRepository
+	passSvc        PasswordService
+	jwtSvc         JWTService
+	resetTokenRepo repository.PasswordResetRepository
 }
 
 // NewAuthService создаёт новый экземпляр сервиса авторизации
@@ -39,12 +43,14 @@ func NewAuthService(
 	tokenRepo repository.TokenRepository,
 	passSvc PasswordService,
 	jwtSvc JWTService,
+	resetTokenRepo repository.PasswordResetRepository,
 ) AuthService {
 	return &authServiceImpl{
-		userRepo:  userRepo,
-		tokenRepo: tokenRepo,
-		passSvc:   passSvc,
-		jwtSvc:    jwtSvc,
+		userRepo:       userRepo,
+		tokenRepo:      tokenRepo,
+		passSvc:        passSvc,
+		jwtSvc:         jwtSvc,
+		resetTokenRepo: resetTokenRepo,
 	}
 }
 
@@ -118,6 +124,7 @@ func (s *authServiceImpl) Login(ctx context.Context, email, password string) (*d
 
 	// Сохранение refresh токена в БД
 	token := &domain.RefreshToken{
+		ID:        uuid.New(), // Явно генерируем UUID
 		UserID:    user.ID,
 		TokenHash: refreshTokenHash,
 		ExpiresAt: time.Now().Add(refreshExpiry),
@@ -128,7 +135,10 @@ func (s *authServiceImpl) Login(ctx context.Context, email, password string) (*d
 		return nil, fmt.Errorf("failed to save refresh token: %w", err)
 	}
 
+	// ВОЗВРАЩАЕМ ТОКЕНЫ!
 	return &dto.TokensResponse{
+		AccessToken:      accessToken,
+		RefreshToken:     refreshToken,
 		AccessExpiresIn:  accessExpiry,
 		RefreshExpiresIn: refreshExpiry,
 	}, nil
@@ -178,6 +188,7 @@ func (s *authServiceImpl) Refresh(ctx context.Context, refreshToken string) (*dt
 	// Сохранение нового refresh токена
 	newTokenHash := hashToken(newRefreshToken)
 	newToken := &domain.RefreshToken{
+		ID:        uuid.New(),
 		UserID:    claims.UserID,
 		TokenHash: newTokenHash,
 		ExpiresAt: time.Now().Add(refreshExpiry),
@@ -189,6 +200,8 @@ func (s *authServiceImpl) Refresh(ctx context.Context, refreshToken string) (*dt
 	}
 
 	return &dto.TokensResponse{
+		AccessToken:      accessToken,     // ← Добавь!
+		RefreshToken:     newRefreshToken, // ← Добавь!
 		AccessExpiresIn:  accessExpiry,
 		RefreshExpiresIn: refreshExpiry,
 	}, nil
@@ -215,6 +228,7 @@ func (s *authServiceImpl) GetUserByID(ctx context.Context, userID uuid.UUID) (*d
 		return nil, errors.New("пользователь не найден")
 	}
 
+	// ToResponse() возвращает *UserResponse — просто возвращаем
 	return user.ToResponse(), nil
 }
 
@@ -222,4 +236,83 @@ func (s *authServiceImpl) GetUserByID(ctx context.Context, userID uuid.UUID) (*d
 func hashToken(token string) string {
 	hash := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(hash[:])
+}
+
+// ForgotPassword генерирует токен сброса пароля и отправляет его на email
+func (s *authServiceImpl) ForgotPassword(ctx context.Context, email string) error {
+	user, err := s.userRepo.GetByEmail(ctx, email)
+	if err != nil {
+		return fmt.Errorf("failed to get user: %w", err)
+	}
+	if user == nil {
+		// Не показываем, что пользователь не найден (безопасность)
+		return nil
+	}
+
+	// Генерируем токен сброса
+	resetToken := uuid.New().String()
+	expiresAt := time.Now().Add(1 * time.Hour)
+
+	// Сохраняем токен в БД
+	token := &domain.PasswordResetToken{
+		UserID:    user.ID,
+		Token:     resetToken,
+		ExpiresAt: expiresAt,
+		Used:      false,
+	}
+
+	if err := s.resetTokenRepo.Create(ctx, token); err != nil {
+		return fmt.Errorf("failed to create reset token: %w", err)
+	}
+
+	// В продакшене здесь была бы отправка email
+	// Для разработки логируем токен
+	// TODO: интегрировать email сервис
+	log.Printf("🔑 Reset token for %s: %s", email, resetToken)
+
+	return nil
+}
+
+// ResetPassword устанавливает новый пароль по токену
+func (s *authServiceImpl) ResetPassword(ctx context.Context, token, newPassword string) error {
+	// Проверяем токен
+	resetToken, err := s.resetTokenRepo.GetByToken(ctx, token)
+	if err != nil {
+		return fmt.Errorf("failed to get reset token: %w", err)
+	}
+	if resetToken == nil {
+		return errors.New("невалидный или истёкший токен сброса пароля")
+	}
+
+	// Получаем пользователя
+	user, err := s.userRepo.GetByID(ctx, resetToken.UserID)
+	if err != nil {
+		return fmt.Errorf("failed to get user: %w", err)
+	}
+	if user == nil {
+		return errors.New("пользователь не найден")
+	}
+
+	// Хэшируем новый пароль
+	passwordHash, salt, err := s.passSvc.HashPassword(newPassword)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	// Обновляем пароль через интерфейс (без type assertion!)
+	if err := s.userRepo.UpdatePassword(ctx, user.ID, passwordHash, salt); err != nil {
+		return fmt.Errorf("failed to update password: %w", err)
+	}
+
+	// Помечаем токен как использованный
+	if err := s.resetTokenRepo.MarkAsUsed(ctx, token); err != nil {
+		log.Printf("Warning: failed to mark reset token as used: %v", err)
+	}
+
+	// Отзываем все сессии пользователя
+	if err := s.tokenRepo.RevokeAll(ctx, user.ID); err != nil {
+		log.Printf("Warning: failed to revoke all sessions: %v", err)
+	}
+
+	return nil
 }
