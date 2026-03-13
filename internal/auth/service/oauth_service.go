@@ -116,6 +116,7 @@ func (s *oauthServiceImpl) handleYandexCallback(ctx context.Context, code, state
 		user = &domain.User{
 			Email:    yandexUser.Email,
 			YandexID: yandexUser.ID,
+			VKID:     "", // Пустая строка, т.к. поле string (не указатель)
 		}
 		// Генерируем случайный пароль (он не будет использоваться)
 		randomPassword := uuid.New().String()
