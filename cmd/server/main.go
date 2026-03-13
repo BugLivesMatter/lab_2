@@ -84,12 +84,14 @@ func main() {
 		accessDur,
 		refreshDur,
 	)
-
+	// Репозиторий для токенов сброса пароля
+	passwordResetRepo := authrepo.NewPasswordResetRepository(db)
 	authService := authservice.NewAuthService(
 		userRepo,
 		tokenRepo,
 		passwordService,
 		jwtService,
+		passwordResetRepo,
 	)
 
 	// Хендлер
