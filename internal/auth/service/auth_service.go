@@ -2,8 +2,6 @@ package service
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -230,12 +228,6 @@ func (s *authServiceImpl) GetUserByID(ctx context.Context, userID uuid.UUID) (*d
 
 	// ToResponse() возвращает *UserResponse — просто возвращаем
 	return user.ToResponse(), nil
-}
-
-// hashToken хеширует токен для безопасного хранения в БД
-func hashToken(token string) string {
-	hash := sha256.Sum256([]byte(token))
-	return hex.EncodeToString(hash[:])
 }
 
 // ForgotPassword генерирует токен сброса пароля и отправляет его на email
