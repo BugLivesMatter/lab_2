@@ -38,4 +38,3 @@ func errorMessage(err error, status int) string {
 	}
 	return err.Error()
 }
-

@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	ErrNotFound    = errors.New("resource not found")
-	ErrConflict    = errors.New("conflict")
-	ErrBadRequest  = errors.New("invalid request")
+	ErrNotFound   = errors.New("resource not found")
+	ErrConflict   = errors.New("conflict")
+	ErrBadRequest = errors.New("invalid request")
 )
 
 type CategoryService interface {
