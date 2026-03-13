@@ -82,7 +82,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	// Access Token (короткое время жизни)
 	c.SetCookie(
 		"access_token",
-		"", // Токен устанавливается в authService, здесь только метаданные
+		tokens.AccessToken, // Токен устанавливается в authService, здесь только метаданные
 		int(tokens.AccessExpiresIn.Seconds()),
 		"/",
 		"",
@@ -93,7 +93,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	// Refresh Token (длительное время жизни)
 	c.SetCookie(
 		"refresh_token",
-		"",
+		tokens.RefreshToken,
 		int(tokens.RefreshExpiresIn.Seconds()),
 		"/",
 		"",
@@ -128,10 +128,11 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 		return
 	}
 
-	// Обновляем cookies
+	// Обновляем cookies с НОВЫМИ токенами
+	// Access Token
 	c.SetCookie(
 		"access_token",
-		"",
+		tokens.AccessToken, // ← Было: "", стало: tokens.AccessToken
 		int(tokens.AccessExpiresIn.Seconds()),
 		"/",
 		"",
@@ -139,9 +140,10 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 		true,
 	)
 
+	// Refresh Token
 	c.SetCookie(
 		"refresh_token",
-		"",
+		tokens.RefreshToken, // ← Было: "", стало: tokens.RefreshToken
 		int(tokens.RefreshExpiresIn.Seconds()),
 		"/",
 		"",
