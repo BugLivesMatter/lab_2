@@ -96,8 +96,27 @@ func main() {
 
 	// Хендлер
 	authHandler := authhandler.NewAuthHandler(authService)
-
 	passwordHandler := authhandler.NewPasswordHandler(authService)
+
+	// ========== OAUTH ==========
+
+	// Конфигурация OAuth
+	oauthConfig := &authservice.OAuthConfig{
+		YandexClientID:     cfg.YandexClientID,
+		YandexClientSecret: cfg.YandexClientSecret,
+		YandexRedirectURI:  cfg.YandexCallbackURL,
+	}
+	// Сервис
+	oauthService := authservice.NewOAuthService(
+		userRepo,
+		tokenRepo,
+		passwordService,
+		jwtService,
+		oauthConfig,
+	)
+
+	// Хендлер
+	oauthHandler := authhandler.NewOAuthHandler(oauthService)
 
 	// Middleware
 	authMW := authmiddleware.AuthMiddleware(jwtService)
@@ -125,6 +144,9 @@ func main() {
 
 		publicAuth.POST("/forgot-password", passwordHandler.ForgotPassword)
 		publicAuth.POST("/reset-password", passwordHandler.ResetPassword)
+		// OAUTH ROUTES
+		publicAuth.GET("/oauth/:provider", oauthHandler.InitOAuth)
+		publicAuth.GET("/oauth/:provider/callback", oauthHandler.OAuthCallback)
 	}
 
 	// ========== PROTECTED ROUTES (с авторизацией) ==========
