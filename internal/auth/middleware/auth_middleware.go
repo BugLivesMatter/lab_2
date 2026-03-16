@@ -1,17 +1,24 @@
 package middleware
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/lab2/rest-api/internal/auth/repository"
 	"github.com/lab2/rest-api/internal/auth/service"
 )
 
-// AuthMiddleware создаёт middleware для проверки JWT токена
-func AuthMiddleware(jwtService service.JWTService) gin.HandlerFunc {
+// AuthMiddleware проверяет access token при каждом запросе к защищённым эндпоинтам.
+// Выполняет два уровня проверки:
+//  1. Криптографическая валидация подписи и срока действия JWT.
+//  2. Проверка по БД — хэш access token должен существовать в активной (не отозванной) сессии.
+//     Это гарантирует мгновенную инвалидацию токена после logout.
+func AuthMiddleware(jwtService service.JWTService, tokenRepo repository.TokenRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 1. Извлекаем токен из HttpOnly cookie
+		// 1. Извлекаем access token из HttpOnly cookie
 		tokenString, err := c.Cookie("access_token")
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
@@ -20,7 +27,7 @@ func AuthMiddleware(jwtService service.JWTService) gin.HandlerFunc {
 			return
 		}
 
-		// 2. Проверяем токен
+		// 2. Проверяем подпись JWT и срок действия
 		claims, err := jwtService.ValidateAccessToken(tokenString)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
@@ -29,16 +36,38 @@ func AuthMiddleware(jwtService service.JWTService) gin.HandlerFunc {
 			return
 		}
 
-		// 3. Сохраняем userID в контекст для использования в хендлерах
-		c.Set("userID", claims.UserID.String())
-		c.Set("userEmail", claims.UserID.String()) // Можно добавить email в claims
+		// 3. Хэшируем токен и ищем его в БД.
+		// Если сессия отозвана (logout) или не существует — запрос отклоняется.
+		tokenHash := hashAccessToken(tokenString)
+		session, err := tokenRepo.GetByAccessTokenHash(c.Request.Context(), tokenHash)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"error": "ошибка проверки сессии",
+			})
+			return
+		}
+		if session == nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"error": "сессия не найдена или завершена, выполните вход повторно",
+			})
+			return
+		}
 
-		// 4. Передаём управление следующему хендлеру
+		// 4. Сохраняем userID в контекст для использования в хендлерах
+		c.Set("userID", claims.UserID.String())
+		c.Set("userEmail", claims.UserID.String())
+
 		c.Next()
 	}
 }
 
-// CORS middleware (опционально, для фронтенда)
+// hashAccessToken вычисляет SHA-256 хэш токена для поиска в БД.
+func hashAccessToken(token string) string {
+	h := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(h[:])
+}
+
+// CORSMiddleware настраивает заголовки CORS для фронтенда.
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")

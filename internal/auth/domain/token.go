@@ -6,15 +6,16 @@ import (
 	"github.com/google/uuid"
 )
 
-// RefreshToken хранит информацию о сессиях пользователя
-// Токен хранится в БД в хешированном виде для безопасности
+// RefreshToken хранит информацию о сессиях пользователя.
+// Оба токена хранятся в виде SHA-256 хэшей для безопасности.
 type RefreshToken struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	UserID    uuid.UUID `gorm:"type:uuid;not null" json:"userId"`
-	TokenHash string    `gorm:"type:text;not null;uniqueIndex" json:"-"`
-	ExpiresAt time.Time `gorm:"type:timestamptz;not null" json:"expiresAt"`
-	Revoked   bool      `gorm:"default:false" json:"revoked"`
-	CreatedAt time.Time `gorm:"type:timestamptz;default:now()" json:"createdAt"`
+	ID              uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	UserID          uuid.UUID `gorm:"type:uuid;not null" json:"userId"`
+	TokenHash       string    `gorm:"type:text;not null;uniqueIndex" json:"-"`
+	AccessTokenHash string    `gorm:"type:text;uniqueIndex" json:"-"`
+	ExpiresAt       time.Time `gorm:"type:timestamptz;not null" json:"expiresAt"`
+	Revoked         bool      `gorm:"default:false" json:"revoked"`
+	CreatedAt       time.Time `gorm:"type:timestamptz;default:now()" json:"createdAt"`
 }
 
 // TableName указывает имя таблицы в БД

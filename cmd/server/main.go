@@ -119,7 +119,7 @@ func main() {
 	oauthHandler := authhandler.NewOAuthHandler(oauthService)
 
 	// Middleware
-	authMW := authmiddleware.AuthMiddleware(jwtService)
+	authMW := authmiddleware.AuthMiddleware(jwtService, tokenRepo)
 	/*
 		if err := db.AutoMigrate(&domain.Category{}, &domain.Product{}); err != nil {
 			log.Fatalf("migrate: %v", err)

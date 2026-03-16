@@ -1,7 +1,3 @@
--- +goose Up
--- +goose StatementBegin
-
--- Таблица для хранения токенов сброса пароля
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -11,9 +7,6 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Индексы для ускорения поиска
 CREATE INDEX idx_password_reset_tokens_token ON password_reset_tokens(token);
 CREATE INDEX idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);
 CREATE INDEX idx_password_reset_tokens_expires_at ON password_reset_tokens(expires_at) WHERE used = FALSE;
-
--- +goose StatementEnd

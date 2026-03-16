@@ -143,14 +143,16 @@ func (s *oauthServiceImpl) handleYandexCallback(ctx context.Context, code, state
 		return nil, nil, fmt.Errorf("failed to generate refresh token: %w", err)
 	}
 
-	// 6. Сохраняем refresh token
+	// 6. Сохраняем refresh token (с привязкой access token hash)
 	refreshTokenHash := hashToken(refreshToken)
+	accessTokenHash := hashToken(accessToken)
 	token := &domain.RefreshToken{
-		ID:        uuid.New(),
-		UserID:    user.ID,
-		TokenHash: refreshTokenHash,
-		ExpiresAt: time.Now().Add(refreshExpiry),
-		Revoked:   false,
+		ID:              uuid.New(),
+		UserID:          user.ID,
+		TokenHash:       refreshTokenHash,
+		AccessTokenHash: accessTokenHash,
+		ExpiresAt:       time.Now().Add(refreshExpiry),
+		Revoked:         false,
 	}
 
 	if err := s.tokenRepo.Create(ctx, token); err != nil {

@@ -15,6 +15,7 @@ import (
 type TokenRepository interface {
 	Create(ctx context.Context, token *domain.RefreshToken) error
 	GetByHash(ctx context.Context, tokenHash string) (*domain.RefreshToken, error)
+	GetByAccessTokenHash(ctx context.Context, accessTokenHash string) (*domain.RefreshToken, error)
 	GetActiveByUserID(ctx context.Context, userID uuid.UUID) ([]*domain.RefreshToken, error)
 	Revoke(ctx context.Context, tokenHash string) error
 	RevokeAll(ctx context.Context, userID uuid.UUID) error
@@ -40,6 +41,22 @@ func (r *tokenRepositoryImpl) Create(ctx context.Context, token *domain.RefreshT
 func (r *tokenRepositoryImpl) GetByHash(ctx context.Context, tokenHash string) (*domain.RefreshToken, error) {
 	var token domain.RefreshToken
 	err := r.db.WithContext(ctx).Where("token_hash = ?", tokenHash).First(&token).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &token, nil
+}
+
+// GetByAccessTokenHash ищет активную сессию по хэшу access token.
+// Возвращает nil, если сессия не найдена или уже отозвана.
+func (r *tokenRepositoryImpl) GetByAccessTokenHash(ctx context.Context, accessTokenHash string) (*domain.RefreshToken, error) {
+	var token domain.RefreshToken
+	err := r.db.WithContext(ctx).
+		Where("access_token_hash = ? AND revoked = ? AND expires_at > ?", accessTokenHash, false, time.Now()).
+		First(&token).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil

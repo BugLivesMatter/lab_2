@@ -117,16 +117,18 @@ func (s *authServiceImpl) Login(ctx context.Context, email, password string) (*d
 		return nil, fmt.Errorf("failed to generate refresh token: %w", err)
 	}
 
-	// Хеширование refresh токена для хранения в БД
+	// Хеширование токенов для хранения в БД
 	refreshTokenHash := hashToken(refreshToken)
+	accessTokenHash := hashToken(accessToken)
 
-	// Сохранение refresh токена в БД
+	// Сохранение refresh токена в БД (с привязкой access token hash)
 	token := &domain.RefreshToken{
-		ID:        uuid.New(), // Явно генерируем UUID
-		UserID:    user.ID,
-		TokenHash: refreshTokenHash,
-		ExpiresAt: time.Now().Add(refreshExpiry),
-		Revoked:   false,
+		ID:              uuid.New(),
+		UserID:          user.ID,
+		TokenHash:       refreshTokenHash,
+		AccessTokenHash: accessTokenHash,
+		ExpiresAt:       time.Now().Add(refreshExpiry),
+		Revoked:         false,
 	}
 
 	if err := s.tokenRepo.Create(ctx, token); err != nil {
@@ -183,14 +185,16 @@ func (s *authServiceImpl) Refresh(ctx context.Context, refreshToken string) (*dt
 		return nil, fmt.Errorf("failed to generate refresh token: %w", err)
 	}
 
-	// Сохранение нового refresh токена
+	// Сохранение нового refresh токена (с привязкой нового access token hash)
 	newTokenHash := hashToken(newRefreshToken)
+	newAccessTokenHash := hashToken(accessToken)
 	newToken := &domain.RefreshToken{
-		ID:        uuid.New(),
-		UserID:    claims.UserID,
-		TokenHash: newTokenHash,
-		ExpiresAt: time.Now().Add(refreshExpiry),
-		Revoked:   false,
+		ID:              uuid.New(),
+		UserID:          claims.UserID,
+		TokenHash:       newTokenHash,
+		AccessTokenHash: newAccessTokenHash,
+		ExpiresAt:       time.Now().Add(refreshExpiry),
+		Revoked:         false,
 	}
 
 	if err := s.tokenRepo.Create(ctx, newToken); err != nil {
@@ -198,8 +202,8 @@ func (s *authServiceImpl) Refresh(ctx context.Context, refreshToken string) (*dt
 	}
 
 	return &dto.TokensResponse{
-		AccessToken:      accessToken,     // ← Добавь!
-		RefreshToken:     newRefreshToken, // ← Добавь!
+		AccessToken:      accessToken,
+		RefreshToken:     newRefreshToken,
 		AccessExpiresIn:  accessExpiry,
 		RefreshExpiresIn: refreshExpiry,
 	}, nil
