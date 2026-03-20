@@ -5,16 +5,14 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"github.com/lab2/rest-api/internal/domain"
-	"github.com/lab2/rest-api/internal/dto"
-	"github.com/lab2/rest-api/internal/repository"
 	"gorm.io/gorm"
-)
 
-var (
-	ErrNotFound   = errors.New("resource not found")
-	ErrConflict   = errors.New("conflict")
-	ErrBadRequest = errors.New("invalid request")
+	"github.com/lab2/rest-api/internal/category/domain"
+	"github.com/lab2/rest-api/internal/category/dto"
+	categoryrepo "github.com/lab2/rest-api/internal/category/repository"
+	productrepo "github.com/lab2/rest-api/internal/product/repository"
+	"github.com/lab2/rest-api/pkg/apperror"
+	"github.com/lab2/rest-api/pkg/pagination"
 )
 
 type CategoryService interface {
@@ -27,11 +25,11 @@ type CategoryService interface {
 }
 
 type categoryService struct {
-	repo        repository.CategoryRepository
-	productRepo repository.ProductRepository
+	repo        categoryrepo.CategoryRepository
+	productRepo productrepo.ProductRepository
 }
 
-func NewCategoryService(repo repository.CategoryRepository, productRepo repository.ProductRepository) CategoryService {
+func NewCategoryService(repo categoryrepo.CategoryRepository, productRepo productrepo.ProductRepository) CategoryService {
 	return &categoryService{repo: repo, productRepo: productRepo}
 }
 
@@ -55,7 +53,7 @@ func (s *categoryService) GetByID(ctx context.Context, id uuid.UUID) (*domain.Ca
 	category, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrNotFound
+			return nil, apperror.ErrNotFound
 		}
 		return nil, err
 	}
@@ -64,13 +62,13 @@ func (s *categoryService) GetByID(ctx context.Context, id uuid.UUID) (*domain.Ca
 
 func (s *categoryService) List(ctx context.Context, page, limit int) ([]domain.Category, int64, int, error) {
 	if page < 1 {
-		page = dto.DefaultPage
+		page = pagination.DefaultPage
 	}
 	if limit < 1 {
-		limit = dto.DefaultLimit
+		limit = pagination.DefaultLimit
 	}
-	if limit > dto.MaxLimit {
-		limit = dto.MaxLimit
+	if limit > pagination.MaxLimit {
+		limit = pagination.MaxLimit
 	}
 	offset := (page - 1) * limit
 	categories, total, err := s.repo.List(ctx, offset, limit)
@@ -88,7 +86,7 @@ func (s *categoryService) Update(ctx context.Context, id uuid.UUID, req *dto.Upd
 	category, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrNotFound
+			return nil, apperror.ErrNotFound
 		}
 		return nil, err
 	}
@@ -105,7 +103,7 @@ func (s *categoryService) Patch(ctx context.Context, id uuid.UUID, req *dto.Patc
 	category, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrNotFound
+			return nil, apperror.ErrNotFound
 		}
 		return nil, err
 	}
@@ -128,7 +126,7 @@ func (s *categoryService) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ErrNotFound
+			return apperror.ErrNotFound
 		}
 		return err
 	}
@@ -137,7 +135,7 @@ func (s *categoryService) Delete(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 	if count > 0 {
-		return ErrConflict
+		return apperror.ErrConflict
 	}
 	return s.repo.Delete(ctx, id)
 }

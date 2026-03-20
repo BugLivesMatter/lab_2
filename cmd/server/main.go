@@ -21,10 +21,13 @@ import (
 	_ "github.com/lab2/rest-api/docs"
 
 	//"github.com/lab2/rest-api/internal/domain"
-	"github.com/lab2/rest-api/internal/handler"
+	categoryhandler "github.com/lab2/rest-api/internal/category/handler"
+	categoryrepo "github.com/lab2/rest-api/internal/category/repository"
+	categorysvc "github.com/lab2/rest-api/internal/category/service"
 	"github.com/lab2/rest-api/internal/middleware"
-	"github.com/lab2/rest-api/internal/repository"
-	"github.com/lab2/rest-api/internal/service"
+	producthandler "github.com/lab2/rest-api/internal/product/handler"
+	productrepo "github.com/lab2/rest-api/internal/product/repository"
+	productsvc "github.com/lab2/rest-api/internal/product/service"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -136,12 +139,12 @@ func main() {
 			log.Fatalf("migrate: %v", err)
 		}
 	*/
-	categoryRepo := repository.NewCategoryRepository(db)
-	productRepo := repository.NewProductRepository(db)
-	categorySvc := service.NewCategoryService(categoryRepo, productRepo)
-	productSvc := service.NewProductService(productRepo, categoryRepo)
-	categoryHandler := handler.NewCategoryHandler(categorySvc)
-	productHandler := handler.NewProductHandler(productSvc)
+	categoryRepo := categoryrepo.NewCategoryRepository(db)
+	productRepo := productrepo.NewProductRepository(db)
+	categorySvc := categorysvc.NewCategoryService(categoryRepo, productRepo)
+	productSvc := productsvc.NewProductService(productRepo, categoryRepo)
+	categoryHandler := categoryhandler.NewCategoryHandler(categorySvc)
+	productHandler := producthandler.NewProductHandler(productSvc)
 
 	r := gin.New()
 	r.Use(gin.Recovery(), middleware.Recovery())

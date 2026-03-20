@@ -6,8 +6,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/lab2/rest-api/internal/dto"
-	"github.com/lab2/rest-api/internal/service"
+
+	"github.com/lab2/rest-api/internal/category/dto"
+	"github.com/lab2/rest-api/internal/category/service"
+	"github.com/lab2/rest-api/pkg/apperror"
+	"github.com/lab2/rest-api/pkg/pagination"
 )
 
 type CategoryHandler struct {
@@ -26,11 +29,11 @@ func NewCategoryHandler(svc service.CategoryService) *CategoryHandler {
 // @Security CookieAuth
 // @Param request body dto.CreateCategoryRequest true "Тело запроса"
 // @Success 201 {object} dto.CategoryResponse "категория создана"
-// @Failure 400 {object} AppErrorResponse
-// @Failure 401 {object} AppErrorResponse
-// @Failure 403 {object} AppErrorResponse
-// @Failure 404 {object} AppErrorResponse
-// @Failure 500 {object} AppErrorResponse
+// @Failure 400 {object} apperror.ErrorResponse
+// @Failure 401 {object} apperror.ErrorResponse
+// @Failure 403 {object} apperror.ErrorResponse
+// @Failure 404 {object} apperror.ErrorResponse
+// @Failure 500 {object} apperror.ErrorResponse
 // @Router /categories [post]
 func (h *CategoryHandler) Create(c *gin.Context) {
 	var req dto.CreateCategoryRequest
@@ -40,8 +43,8 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 	}
 	category, err := h.svc.Create(c.Request.Context(), &req)
 	if err != nil {
-		status := statusFromError(err)
-		c.JSON(status, gin.H{"error": errorMessage(err, status)})
+		status := apperror.StatusFromError(err)
+		c.JSON(status, gin.H{"error": apperror.Message(err, status)})
 		return
 	}
 	c.JSON(http.StatusCreated, dto.CategoryToResponse(category))
@@ -54,23 +57,22 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 // @Security CookieAuth
 // @Param id path string true "UUID категории"
 // @Success 200 {object} dto.CategoryResponse "категория найдена"
-// @Failure 400 {object} AppErrorResponse
-// @Failure 401 {object} AppErrorResponse
-// @Failure 403 {object} AppErrorResponse
-// @Failure 404 {object} AppErrorResponse
-// @Failure 500 {object} AppErrorResponse
+// @Failure 400 {object} apperror.ErrorResponse
+// @Failure 401 {object} apperror.ErrorResponse
+// @Failure 403 {object} apperror.ErrorResponse
+// @Failure 404 {object} apperror.ErrorResponse
+// @Failure 500 {object} apperror.ErrorResponse
 // @Router /categories/{id} [get]
 func (h *CategoryHandler) GetByID(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
 	category, err := h.svc.GetByID(c.Request.Context(), id)
 	if err != nil {
-		status := statusFromError(err)
-		c.JSON(status, gin.H{"error": errorMessage(err, status)})
+		status := apperror.StatusFromError(err)
+		c.JSON(status, gin.H{"error": apperror.Message(err, status)})
 		return
 	}
 	c.JSON(http.StatusOK, dto.CategoryToResponse(category))
@@ -84,29 +86,28 @@ func (h *CategoryHandler) GetByID(c *gin.Context) {
 // @Param page query int false "Номер страницы" example(1)
 // @Param limit query int false "Количество элементов на странице" example(10)
 // @Success 200 {object} dto.CategoryListResponse "список категорий"
-// @Failure 400 {object} AppErrorResponse
-// @Failure 401 {object} AppErrorResponse
-// @Failure 403 {object} AppErrorResponse
-// @Failure 404 {object} AppErrorResponse
-// @Failure 500 {object} AppErrorResponse
+// @Failure 400 {object} apperror.ErrorResponse
+// @Failure 401 {object} apperror.ErrorResponse
+// @Failure 403 {object} apperror.ErrorResponse
+// @Failure 500 {object} apperror.ErrorResponse
 // @Router /categories [get]
 func (h *CategoryHandler) List(c *gin.Context) {
-	page := 1
-	limit := dto.DefaultLimit
+	page := pagination.DefaultPage
+	limit := pagination.DefaultLimit
 	if p := c.Query("page"); p != "" {
 		if v, err := strconv.Atoi(p); err == nil && v > 0 {
 			page = v
 		}
 	}
 	if l := c.Query("limit"); l != "" {
-		if v, err := strconv.Atoi(l); err == nil && v >= 1 && v <= dto.MaxLimit {
+		if v, err := strconv.Atoi(l); err == nil && v >= 1 && v <= pagination.MaxLimit {
 			limit = v
 		}
 	}
 	categories, total, totalPages, err := h.svc.List(c.Request.Context(), page, limit)
 	if err != nil {
-		status := statusFromError(err)
-		c.JSON(status, gin.H{"error": errorMessage(err, status)})
+		status := apperror.StatusFromError(err)
+		c.JSON(status, gin.H{"error": apperror.Message(err, status)})
 		return
 	}
 	data := make([]dto.CategoryResponse, len(categories))
@@ -115,7 +116,7 @@ func (h *CategoryHandler) List(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, dto.CategoryListResponse{
 		Data: data,
-		Meta: dto.Meta{
+		Meta: pagination.Meta{
 			Total:      total,
 			Page:       page,
 			Limit:      limit,
@@ -133,15 +134,14 @@ func (h *CategoryHandler) List(c *gin.Context) {
 // @Param id path string true "UUID категории"
 // @Param request body dto.UpdateCategoryRequest true "Тело запроса"
 // @Success 200 {object} dto.CategoryResponse "категория обновлена"
-// @Failure 400 {object} AppErrorResponse
-// @Failure 401 {object} AppErrorResponse
-// @Failure 403 {object} AppErrorResponse
-// @Failure 404 {object} AppErrorResponse
-// @Failure 500 {object} AppErrorResponse
+// @Failure 400 {object} apperror.ErrorResponse
+// @Failure 401 {object} apperror.ErrorResponse
+// @Failure 403 {object} apperror.ErrorResponse
+// @Failure 404 {object} apperror.ErrorResponse
+// @Failure 500 {object} apperror.ErrorResponse
 // @Router /categories/{id} [put]
 func (h *CategoryHandler) Update(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
@@ -153,8 +153,8 @@ func (h *CategoryHandler) Update(c *gin.Context) {
 	}
 	category, err := h.svc.Update(c.Request.Context(), id, &req)
 	if err != nil {
-		status := statusFromError(err)
-		c.JSON(status, gin.H{"error": errorMessage(err, status)})
+		status := apperror.StatusFromError(err)
+		c.JSON(status, gin.H{"error": apperror.Message(err, status)})
 		return
 	}
 	c.JSON(http.StatusOK, dto.CategoryToResponse(category))
@@ -169,15 +169,14 @@ func (h *CategoryHandler) Update(c *gin.Context) {
 // @Param id path string true "UUID категории"
 // @Param request body dto.PatchCategoryRequest true "Тело запроса"
 // @Success 200 {object} dto.CategoryResponse "категория обновлена"
-// @Failure 400 {object} AppErrorResponse
-// @Failure 401 {object} AppErrorResponse
-// @Failure 403 {object} AppErrorResponse
-// @Failure 404 {object} AppErrorResponse
-// @Failure 500 {object} AppErrorResponse
+// @Failure 400 {object} apperror.ErrorResponse
+// @Failure 401 {object} apperror.ErrorResponse
+// @Failure 403 {object} apperror.ErrorResponse
+// @Failure 404 {object} apperror.ErrorResponse
+// @Failure 500 {object} apperror.ErrorResponse
 // @Router /categories/{id} [patch]
 func (h *CategoryHandler) Patch(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
@@ -189,8 +188,8 @@ func (h *CategoryHandler) Patch(c *gin.Context) {
 	}
 	category, err := h.svc.Patch(c.Request.Context(), id, &req)
 	if err != nil {
-		status := statusFromError(err)
-		c.JSON(status, gin.H{"error": errorMessage(err, status)})
+		status := apperror.StatusFromError(err)
+		c.JSON(status, gin.H{"error": apperror.Message(err, status)})
 		return
 	}
 	c.JSON(http.StatusOK, dto.CategoryToResponse(category))
@@ -203,22 +202,22 @@ func (h *CategoryHandler) Patch(c *gin.Context) {
 // @Security CookieAuth
 // @Param id path string true "UUID категории"
 // @Success 204 "категория удалена"
-// @Failure 400 {object} AppErrorResponse
-// @Failure 401 {object} AppErrorResponse
-// @Failure 403 {object} AppErrorResponse
-// @Failure 404 {object} AppErrorResponse
-// @Failure 500 {object} AppErrorResponse
+// @Failure 400 {object} apperror.ErrorResponse
+// @Failure 401 {object} apperror.ErrorResponse
+// @Failure 403 {object} apperror.ErrorResponse
+// @Failure 404 {object} apperror.ErrorResponse
+// @Failure 409 {object} apperror.ErrorResponse
+// @Failure 500 {object} apperror.ErrorResponse
 // @Router /categories/{id} [delete]
 func (h *CategoryHandler) Delete(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
 	if err := h.svc.Delete(c.Request.Context(), id); err != nil {
-		status := statusFromError(err)
-		c.JSON(status, gin.H{"error": errorMessage(err, status)})
+		status := apperror.StatusFromError(err)
+		c.JSON(status, gin.H{"error": apperror.Message(err, status)})
 		return
 	}
 	c.Status(http.StatusNoContent)

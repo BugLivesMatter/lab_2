@@ -1,6 +1,9 @@
 package dto
 
-import "github.com/lab2/rest-api/internal/domain"
+import (
+	"github.com/lab2/rest-api/internal/product/domain"
+	"github.com/lab2/rest-api/pkg/pagination"
+)
 
 type CreateProductRequest struct {
 	CategoryID  string  `json:"categoryId" binding:"required" format:"uuid" example:"550e8400-e29b-41d4-a716-446655440000"`
@@ -39,7 +42,7 @@ type ProductResponse struct {
 
 type ProductListResponse struct {
 	Data []ProductResponse `json:"data"`
-	Meta Meta              `json:"meta"`
+	Meta pagination.Meta   `json:"meta"`
 }
 
 func ProductToResponse(p *domain.Product) ProductResponse {

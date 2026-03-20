@@ -1,6 +1,9 @@
 package dto
 
-import "github.com/lab2/rest-api/internal/domain"
+import (
+	"github.com/lab2/rest-api/internal/category/domain"
+	"github.com/lab2/rest-api/pkg/pagination"
+)
 
 type CreateCategoryRequest struct {
 	Name        string `json:"name" binding:"required" example:"Электроника"`
@@ -30,7 +33,7 @@ type CategoryResponse struct {
 
 type CategoryListResponse struct {
 	Data []CategoryResponse `json:"data"`
-	Meta Meta               `json:"meta"`
+	Meta pagination.Meta    `json:"meta"`
 }
 
 func CategoryToResponse(c *domain.Category) CategoryResponse {

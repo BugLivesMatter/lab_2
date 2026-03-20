@@ -1,4 +1,4 @@
-package dto
+package pagination
 
 const (
 	DefaultPage  = 1
@@ -6,6 +6,7 @@ const (
 	MaxLimit     = 100
 )
 
+// Meta содержит метаданные страничного ответа.
 type Meta struct {
 	Total      int64 `json:"total" example:"42"`
 	Page       int   `json:"page" example:"1"`

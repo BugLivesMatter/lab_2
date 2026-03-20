@@ -6,8 +6,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/lab2/rest-api/internal/dto"
-	"github.com/lab2/rest-api/internal/service"
+
+	"github.com/lab2/rest-api/internal/product/dto"
+	"github.com/lab2/rest-api/internal/product/service"
+	"github.com/lab2/rest-api/pkg/apperror"
+	"github.com/lab2/rest-api/pkg/pagination"
 )
 
 type ProductHandler struct {
@@ -26,11 +29,11 @@ func NewProductHandler(svc service.ProductService) *ProductHandler {
 // @Security CookieAuth
 // @Param request body dto.CreateProductRequest true "Тело запроса"
 // @Success 201 {object} dto.ProductResponse "продукт создан"
-// @Failure 400 {object} AppErrorResponse
-// @Failure 401 {object} AppErrorResponse
-// @Failure 403 {object} AppErrorResponse
-// @Failure 404 {object} AppErrorResponse
-// @Failure 500 {object} AppErrorResponse
+// @Failure 400 {object} apperror.ErrorResponse
+// @Failure 401 {object} apperror.ErrorResponse
+// @Failure 403 {object} apperror.ErrorResponse
+// @Failure 404 {object} apperror.ErrorResponse
+// @Failure 500 {object} apperror.ErrorResponse
 // @Router /products [post]
 func (h *ProductHandler) Create(c *gin.Context) {
 	var req dto.CreateProductRequest
@@ -40,8 +43,8 @@ func (h *ProductHandler) Create(c *gin.Context) {
 	}
 	product, err := h.svc.Create(c.Request.Context(), &req)
 	if err != nil {
-		status := statusFromError(err)
-		c.JSON(status, gin.H{"error": errorMessage(err, status)})
+		status := apperror.StatusFromError(err)
+		c.JSON(status, gin.H{"error": apperror.Message(err, status)})
 		return
 	}
 	c.JSON(http.StatusCreated, dto.ProductToResponse(product))
@@ -54,23 +57,22 @@ func (h *ProductHandler) Create(c *gin.Context) {
 // @Security CookieAuth
 // @Param id path string true "UUID продукта"
 // @Success 200 {object} dto.ProductResponse "продукт найден"
-// @Failure 400 {object} AppErrorResponse
-// @Failure 401 {object} AppErrorResponse
-// @Failure 403 {object} AppErrorResponse
-// @Failure 404 {object} AppErrorResponse
-// @Failure 500 {object} AppErrorResponse
+// @Failure 400 {object} apperror.ErrorResponse
+// @Failure 401 {object} apperror.ErrorResponse
+// @Failure 403 {object} apperror.ErrorResponse
+// @Failure 404 {object} apperror.ErrorResponse
+// @Failure 500 {object} apperror.ErrorResponse
 // @Router /products/{id} [get]
 func (h *ProductHandler) GetByID(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
 	product, err := h.svc.GetByID(c.Request.Context(), id)
 	if err != nil {
-		status := statusFromError(err)
-		c.JSON(status, gin.H{"error": errorMessage(err, status)})
+		status := apperror.StatusFromError(err)
+		c.JSON(status, gin.H{"error": apperror.Message(err, status)})
 		return
 	}
 	c.JSON(http.StatusOK, dto.ProductToResponse(product))
@@ -85,15 +87,14 @@ func (h *ProductHandler) GetByID(c *gin.Context) {
 // @Param page query int false "Номер страницы" example(1)
 // @Param limit query int false "Количество элементов на странице" example(10)
 // @Success 200 {object} dto.ProductListResponse "список продуктов"
-// @Failure 400 {object} AppErrorResponse
-// @Failure 401 {object} AppErrorResponse
-// @Failure 403 {object} AppErrorResponse
-// @Failure 404 {object} AppErrorResponse
-// @Failure 500 {object} AppErrorResponse
+// @Failure 400 {object} apperror.ErrorResponse
+// @Failure 401 {object} apperror.ErrorResponse
+// @Failure 403 {object} apperror.ErrorResponse
+// @Failure 500 {object} apperror.ErrorResponse
 // @Router /products [get]
 func (h *ProductHandler) List(c *gin.Context) {
-	page := 1
-	limit := dto.DefaultLimit
+	page := pagination.DefaultPage
+	limit := pagination.DefaultLimit
 	var categoryID *uuid.UUID
 	if cid := c.Query("category_id"); cid != "" {
 		if id, err := uuid.Parse(cid); err == nil {
@@ -106,14 +107,14 @@ func (h *ProductHandler) List(c *gin.Context) {
 		}
 	}
 	if l := c.Query("limit"); l != "" {
-		if v, err := strconv.Atoi(l); err == nil && v >= 1 && v <= dto.MaxLimit {
+		if v, err := strconv.Atoi(l); err == nil && v >= 1 && v <= pagination.MaxLimit {
 			limit = v
 		}
 	}
 	products, total, totalPages, err := h.svc.List(c.Request.Context(), page, limit, categoryID)
 	if err != nil {
-		status := statusFromError(err)
-		c.JSON(status, gin.H{"error": errorMessage(err, status)})
+		status := apperror.StatusFromError(err)
+		c.JSON(status, gin.H{"error": apperror.Message(err, status)})
 		return
 	}
 	data := make([]dto.ProductResponse, len(products))
@@ -122,7 +123,7 @@ func (h *ProductHandler) List(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, dto.ProductListResponse{
 		Data: data,
-		Meta: dto.Meta{
+		Meta: pagination.Meta{
 			Total:      total,
 			Page:       page,
 			Limit:      limit,
@@ -140,15 +141,14 @@ func (h *ProductHandler) List(c *gin.Context) {
 // @Param id path string true "UUID продукта"
 // @Param request body dto.UpdateProductRequest true "Тело запроса"
 // @Success 200 {object} dto.ProductResponse "продукт обновлён"
-// @Failure 400 {object} AppErrorResponse
-// @Failure 401 {object} AppErrorResponse
-// @Failure 403 {object} AppErrorResponse
-// @Failure 404 {object} AppErrorResponse
-// @Failure 500 {object} AppErrorResponse
+// @Failure 400 {object} apperror.ErrorResponse
+// @Failure 401 {object} apperror.ErrorResponse
+// @Failure 403 {object} apperror.ErrorResponse
+// @Failure 404 {object} apperror.ErrorResponse
+// @Failure 500 {object} apperror.ErrorResponse
 // @Router /products/{id} [put]
 func (h *ProductHandler) Update(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
@@ -160,8 +160,8 @@ func (h *ProductHandler) Update(c *gin.Context) {
 	}
 	product, err := h.svc.Update(c.Request.Context(), id, &req)
 	if err != nil {
-		status := statusFromError(err)
-		c.JSON(status, gin.H{"error": errorMessage(err, status)})
+		status := apperror.StatusFromError(err)
+		c.JSON(status, gin.H{"error": apperror.Message(err, status)})
 		return
 	}
 	c.JSON(http.StatusOK, dto.ProductToResponse(product))
@@ -176,15 +176,14 @@ func (h *ProductHandler) Update(c *gin.Context) {
 // @Param id path string true "UUID продукта"
 // @Param request body dto.PatchProductRequest true "Тело запроса"
 // @Success 200 {object} dto.ProductResponse "продукт обновлён"
-// @Failure 400 {object} AppErrorResponse
-// @Failure 401 {object} AppErrorResponse
-// @Failure 403 {object} AppErrorResponse
-// @Failure 404 {object} AppErrorResponse
-// @Failure 500 {object} AppErrorResponse
+// @Failure 400 {object} apperror.ErrorResponse
+// @Failure 401 {object} apperror.ErrorResponse
+// @Failure 403 {object} apperror.ErrorResponse
+// @Failure 404 {object} apperror.ErrorResponse
+// @Failure 500 {object} apperror.ErrorResponse
 // @Router /products/{id} [patch]
 func (h *ProductHandler) Patch(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
@@ -196,8 +195,8 @@ func (h *ProductHandler) Patch(c *gin.Context) {
 	}
 	product, err := h.svc.Patch(c.Request.Context(), id, &req)
 	if err != nil {
-		status := statusFromError(err)
-		c.JSON(status, gin.H{"error": errorMessage(err, status)})
+		status := apperror.StatusFromError(err)
+		c.JSON(status, gin.H{"error": apperror.Message(err, status)})
 		return
 	}
 	c.JSON(http.StatusOK, dto.ProductToResponse(product))
@@ -210,22 +209,21 @@ func (h *ProductHandler) Patch(c *gin.Context) {
 // @Security CookieAuth
 // @Param id path string true "UUID продукта"
 // @Success 204 "продукт удалён"
-// @Failure 400 {object} AppErrorResponse
-// @Failure 401 {object} AppErrorResponse
-// @Failure 403 {object} AppErrorResponse
-// @Failure 404 {object} AppErrorResponse
-// @Failure 500 {object} AppErrorResponse
+// @Failure 400 {object} apperror.ErrorResponse
+// @Failure 401 {object} apperror.ErrorResponse
+// @Failure 403 {object} apperror.ErrorResponse
+// @Failure 404 {object} apperror.ErrorResponse
+// @Failure 500 {object} apperror.ErrorResponse
 // @Router /products/{id} [delete]
 func (h *ProductHandler) Delete(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
+	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
 	if err := h.svc.Delete(c.Request.Context(), id); err != nil {
-		status := statusFromError(err)
-		c.JSON(status, gin.H{"error": errorMessage(err, status)})
+		status := apperror.StatusFromError(err)
+		c.JSON(status, gin.H{"error": apperror.Message(err, status)})
 		return
 	}
 	c.Status(http.StatusNoContent)

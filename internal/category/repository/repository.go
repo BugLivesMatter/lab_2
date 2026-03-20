@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/lab2/rest-api/internal/domain"
+	"github.com/lab2/rest-api/internal/category/domain"
 	"gorm.io/gorm"
 )
 
@@ -40,19 +40,13 @@ func (r *categoryRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain
 func (r *categoryRepository) List(ctx context.Context, offset, limit int) ([]domain.Category, int64, error) {
 	var categories []domain.Category
 	var total int64
-	// Создаём базовый запрос с фильтром по НЕ удалённым записям
 	query := r.db.WithContext(ctx).Model(&domain.Category{}).Where("deleted_at IS NULL")
-
-	// Считаем общее количество НЕ удалённых записей
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-
-	// Получаем записи с пагинацией, только НЕ удалённые
 	if err := query.Offset(offset).Limit(limit).Find(&categories).Error; err != nil {
 		return nil, 0, err
 	}
-
 	return categories, total, nil
 }
 

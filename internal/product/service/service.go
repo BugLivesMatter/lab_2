@@ -5,10 +5,14 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"github.com/lab2/rest-api/internal/domain"
-	"github.com/lab2/rest-api/internal/dto"
-	"github.com/lab2/rest-api/internal/repository"
 	"gorm.io/gorm"
+
+	categoryrepo "github.com/lab2/rest-api/internal/category/repository"
+	"github.com/lab2/rest-api/internal/product/domain"
+	"github.com/lab2/rest-api/internal/product/dto"
+	productrepo "github.com/lab2/rest-api/internal/product/repository"
+	"github.com/lab2/rest-api/pkg/apperror"
+	"github.com/lab2/rest-api/pkg/pagination"
 )
 
 type ProductService interface {
@@ -21,23 +25,23 @@ type ProductService interface {
 }
 
 type productService struct {
-	repo         repository.ProductRepository
-	categoryRepo repository.CategoryRepository
+	repo         productrepo.ProductRepository
+	categoryRepo categoryrepo.CategoryRepository
 }
 
-func NewProductService(repo repository.ProductRepository, categoryRepo repository.CategoryRepository) ProductService {
+func NewProductService(repo productrepo.ProductRepository, categoryRepo categoryrepo.CategoryRepository) ProductService {
 	return &productService{repo: repo, categoryRepo: categoryRepo}
 }
 
 func (s *productService) Create(ctx context.Context, req *dto.CreateProductRequest) (*domain.Product, error) {
 	categoryID, err := uuid.Parse(req.CategoryID)
 	if err != nil {
-		return nil, ErrBadRequest
+		return nil, apperror.ErrBadRequest
 	}
 	_, err = s.categoryRepo.GetByID(ctx, categoryID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrNotFound
+			return nil, apperror.ErrNotFound
 		}
 		return nil, err
 	}
@@ -63,7 +67,7 @@ func (s *productService) GetByID(ctx context.Context, id uuid.UUID) (*domain.Pro
 	product, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrNotFound
+			return nil, apperror.ErrNotFound
 		}
 		return nil, err
 	}
@@ -72,13 +76,13 @@ func (s *productService) GetByID(ctx context.Context, id uuid.UUID) (*domain.Pro
 
 func (s *productService) List(ctx context.Context, page, limit int, categoryID *uuid.UUID) ([]domain.Product, int64, int, error) {
 	if page < 1 {
-		page = dto.DefaultPage
+		page = pagination.DefaultPage
 	}
 	if limit < 1 {
-		limit = dto.DefaultLimit
+		limit = pagination.DefaultLimit
 	}
-	if limit > dto.MaxLimit {
-		limit = dto.MaxLimit
+	if limit > pagination.MaxLimit {
+		limit = pagination.MaxLimit
 	}
 	offset := (page - 1) * limit
 	products, total, err := s.repo.List(ctx, offset, limit, categoryID)
@@ -96,18 +100,18 @@ func (s *productService) Update(ctx context.Context, id uuid.UUID, req *dto.Upda
 	product, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrNotFound
+			return nil, apperror.ErrNotFound
 		}
 		return nil, err
 	}
 	categoryID, err := uuid.Parse(req.CategoryID)
 	if err != nil {
-		return nil, ErrBadRequest
+		return nil, apperror.ErrBadRequest
 	}
 	_, err = s.categoryRepo.GetByID(ctx, categoryID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrNotFound
+			return nil, apperror.ErrNotFound
 		}
 		return nil, err
 	}
@@ -127,19 +131,19 @@ func (s *productService) Patch(ctx context.Context, id uuid.UUID, req *dto.Patch
 	product, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrNotFound
+			return nil, apperror.ErrNotFound
 		}
 		return nil, err
 	}
 	if req.CategoryID != nil {
 		categoryID, err := uuid.Parse(*req.CategoryID)
 		if err != nil {
-			return nil, ErrBadRequest
+			return nil, apperror.ErrBadRequest
 		}
 		_, err = s.categoryRepo.GetByID(ctx, categoryID)
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return nil, ErrNotFound
+				return nil, apperror.ErrNotFound
 			}
 			return nil, err
 		}
@@ -168,7 +172,7 @@ func (s *productService) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ErrNotFound
+			return apperror.ErrNotFound
 		}
 		return err
 	}
