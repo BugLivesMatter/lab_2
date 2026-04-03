@@ -639,31 +639,25 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     }
                 }
@@ -705,31 +699,31 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     }
                 }
@@ -768,31 +762,31 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     }
                 }
@@ -841,31 +835,31 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     }
                 }
@@ -899,31 +893,37 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     }
                 }
@@ -972,31 +972,101 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/health/diagnosis": {
+            "get": {
+                "description": "Использует CategoryRepository.List и cache.Service с тем же ключом и JSON, что CategoryService.List. Перед замером удаляет кеш страницы (cache.Del). Параметры page и limit — как у GET /categories.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Диагностика БД и Redis (как GET /categories)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Размер страницы (макс. 100)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/health.DiagnosisResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/health/redis": {
+            "get": {
+                "description": "PING, INFO, DBSIZE, счётчики операций кеша, время последнего успешного доступа приложения к Redis.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Статус Redis и метрики кеша",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Произвольное значение (например 1) для явного запроса статуса",
+                        "name": "RedisStatus",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/cache.RedisStatusResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Redis недоступен (PING не прошёл), при этом клиент был сконфигурирован",
+                        "schema": {
+                            "$ref": "#/definitions/cache.RedisStatusResponse"
                         }
                     }
                 }
@@ -1048,31 +1118,25 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     }
                 }
@@ -1114,31 +1178,31 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     }
                 }
@@ -1177,31 +1241,31 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     }
                 }
@@ -1250,31 +1314,31 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     }
                 }
@@ -1308,31 +1372,31 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     }
                 }
@@ -1381,31 +1445,31 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/handler.AppErrorResponse"
+                            "$ref": "#/definitions/apperror.ErrorResponse"
                         }
                     }
                 }
@@ -1413,6 +1477,145 @@
         }
     },
     "definitions": {
+        "apperror.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "not found"
+                }
+            }
+        },
+        "cache.RedisServerInfo": {
+            "type": "object",
+            "properties": {
+                "connectedClients": {
+                    "type": "integer"
+                },
+                "instantaneousOpsPerSec": {
+                    "type": "integer"
+                },
+                "keyspaceHits": {
+                    "type": "integer"
+                },
+                "keyspaceMisses": {
+                    "type": "integer"
+                },
+                "maxMemoryBytes": {
+                    "type": "integer"
+                },
+                "memFragmentationRatio": {
+                    "type": "number"
+                },
+                "redisVersion": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "totalCommandsProcessed": {
+                    "type": "integer"
+                },
+                "totalConnectionsReceived": {
+                    "type": "integer"
+                },
+                "uptimeSeconds": {
+                    "type": "integer"
+                },
+                "usedMemoryBytes": {
+                    "type": "integer"
+                },
+                "usedMemoryHuman": {
+                    "type": "string"
+                },
+                "usedMemoryPeakHuman": {
+                    "type": "string"
+                }
+            }
+        },
+        "cache.RedisStatusResponse": {
+            "type": "object",
+            "properties": {
+                "cacheConfigEnabled": {
+                    "description": "CacheConfigEnabled — значение CACHE_ENABLED из конфигурации.",
+                    "type": "boolean"
+                },
+                "checkedAt": {
+                    "description": "CheckedAt — время выполнения проверки (UTC, RFC3339Nano).",
+                    "type": "string"
+                },
+                "clientConfigured": {
+                    "description": "ClientConfigured — клиент Redis был успешно инициализирован (не nil).",
+                    "type": "boolean"
+                },
+                "connected": {
+                    "description": "Connected — успешный PING на момент запроса.",
+                    "type": "boolean"
+                },
+                "error": {
+                    "description": "Error — текст ошибки PING / INFO / DBSIZE (если была).",
+                    "type": "string"
+                },
+                "isEnabled": {
+                    "description": "IsEnabled — кеш считается включённым: CACHE_ENABLED=true и клиент создан.",
+                    "type": "boolean"
+                },
+                "keysInDb": {
+                    "description": "KeysInDB — приблизительное число ключей в текущей БД (DBSIZE).",
+                    "type": "integer"
+                },
+                "lastSuccessfulAccessAt": {
+                    "description": "LastSuccessfulAccessAt — последнее успешное обращение приложения к Redis (UTC).",
+                    "type": "string"
+                },
+                "pingLatencyMs": {
+                    "description": "PingLatencyMs — задержка PING в миллисекундах.",
+                    "type": "number"
+                },
+                "server": {
+                    "description": "Server — выборка полей из Redis INFO.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/cache.RedisServerInfo"
+                        }
+                    ]
+                },
+                "usage": {
+                    "description": "Usage — агрегированная нагрузка по операциям кеша с момента старта процесса.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/cache.RedisUsageMetrics"
+                        }
+                    ]
+                }
+            }
+        },
+        "cache.RedisUsageMetrics": {
+            "type": "object",
+            "properties": {
+                "delByPattern": {
+                    "type": "integer"
+                },
+                "delSingle": {
+                    "type": "integer"
+                },
+                "existsChecks": {
+                    "type": "integer"
+                },
+                "getRequests": {
+                    "type": "integer"
+                },
+                "hitRatioEstimate": {
+                    "type": "number"
+                },
+                "setWrites": {
+                    "type": "integer"
+                },
+                "totalCacheOperations": {
+                    "type": "integer"
+                }
+            }
+        },
         "domain.UserResponse": {
             "type": "object",
             "properties": {
@@ -1450,7 +1653,7 @@
                     }
                 },
                 "meta": {
-                    "$ref": "#/definitions/dto.Meta"
+                    "$ref": "#/definitions/pagination.Meta"
                 }
             }
         },
@@ -1618,27 +1821,6 @@
                 }
             }
         },
-        "dto.Meta": {
-            "type": "object",
-            "properties": {
-                "limit": {
-                    "type": "integer",
-                    "example": 10
-                },
-                "page": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "total": {
-                    "type": "integer",
-                    "example": 42
-                },
-                "totalPages": {
-                    "type": "integer",
-                    "example": 5
-                }
-            }
-        },
         "dto.OAuthCallbackResponse": {
             "type": "object",
             "properties": {
@@ -1719,7 +1901,7 @@
                     }
                 },
                 "meta": {
-                    "$ref": "#/definitions/dto.Meta"
+                    "$ref": "#/definitions/pagination.Meta"
                 }
             }
         },
@@ -1906,21 +2088,173 @@
                 }
             }
         },
-        "handler.AppErrorResponse": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string",
-                    "example": "invalid category id"
-                }
-            }
-        },
         "handler.AuthErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
                     "type": "string",
                     "example": "invalid_or_expired_token"
+                }
+            }
+        },
+        "health.DiagnosisComparison": {
+            "type": "object",
+            "properties": {
+                "postgresqlMs": {
+                    "type": "number"
+                },
+                "redisFasterThanPostgresPercent": {
+                    "description": "RedisFasterPercent — доля сокращения времени относительно PostgreSQL: (pg-redis)/pg*100 при pg\u003eredis.\nЭто не «во сколько раз быстрее»; множитель см. RedisSpeedupFactor (= pg/redis).",
+                    "type": "number"
+                },
+                "redisMs": {
+                    "type": "number"
+                },
+                "redisSpeedupFactor": {
+                    "type": "number"
+                },
+                "summary": {
+                    "type": "string"
+                }
+            }
+        },
+        "health.DiagnosisPostgresSection": {
+            "type": "object",
+            "properties": {
+                "approxPayloadJsonBytes": {
+                    "description": "ApproxPayloadBytes — размер JSON тела, как у cache.Service.Set (для справки).",
+                    "type": "integer"
+                },
+                "cacheKey": {
+                    "type": "string"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "listError": {
+                    "type": "string"
+                },
+                "listLatencyMs": {
+                    "description": "ListMs — только CategoryRepository.List (Count + Find внутри репозитория).",
+                    "type": "number"
+                },
+                "listRepositoryMethod": {
+                    "description": "Ниже — тот же путь данных, что GET /categories при промахе кеша.",
+                    "type": "string"
+                },
+                "listRowCount": {
+                    "description": "ListRowCount — число записей на странице.",
+                    "type": "integer"
+                },
+                "ok": {
+                    "type": "boolean"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "simpleError": {
+                    "type": "string"
+                },
+                "simpleLatencyMs": {
+                    "type": "number"
+                },
+                "simpleQuery": {
+                    "type": "string"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "health.DiagnosisRedisSection": {
+            "type": "object",
+            "properties": {
+                "cacheError": {
+                    "type": "string"
+                },
+                "cacheGetHit": {
+                    "type": "boolean"
+                },
+                "cacheGetLatencyMs": {
+                    "type": "number"
+                },
+                "cacheSetLatencyMs": {
+                    "description": "CacheSetMs / CacheGetMs — те же вызовы, что в categoryService.List.",
+                    "type": "number"
+                },
+                "clientNotConfigured": {
+                    "type": "boolean"
+                },
+                "ok": {
+                    "type": "boolean"
+                },
+                "pingError": {
+                    "type": "string"
+                },
+                "pingLatencyMs": {
+                    "type": "number"
+                }
+            }
+        },
+        "health.DiagnosisResponse": {
+            "type": "object",
+            "properties": {
+                "checkedAt": {
+                    "type": "string"
+                },
+                "comparisonMissVsHit": {
+                    "description": "ComparisonMissVsHit — полный промах (List + cache.Set) vs cache hit (Get), как два последовательных запроса GET /categories.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/health.DiagnosisComparison"
+                        }
+                    ]
+                },
+                "comparisonSimple": {
+                    "description": "ComparisonSimple — SELECT 1 vs PING.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/health.DiagnosisComparison"
+                        }
+                    ]
+                },
+                "comparisonWorkload": {
+                    "description": "ComparisonWorkload — repository.List (как при промахе кеша) vs cache.Get (как при попадании).",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/health.DiagnosisComparison"
+                        }
+                    ]
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "postgresql": {
+                    "$ref": "#/definitions/health.DiagnosisPostgresSection"
+                },
+                "redis": {
+                    "$ref": "#/definitions/health.DiagnosisRedisSection"
+                }
+            }
+        },
+        "pagination.Meta": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 42
+                },
+                "totalPages": {
+                    "type": "integer",
+                    "example": 5
                 }
             }
         }

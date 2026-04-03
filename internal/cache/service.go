@@ -17,19 +17,30 @@ type Service interface {
 	Del(ctx context.Context, key string) error
 	DelByPattern(ctx context.Context, pattern string) error
 	Exists(ctx context.Context, key string) (bool, error)
+	// RedisStatus собирает PING, INFO, DBSIZE и счётчики обращений приложения к Redis.
+	RedisStatus(ctx context.Context) RedisStatusResponse
 }
 
 type redisService struct {
-	client  *redis.Client
-	enabled bool
+	client        *redis.Client
+	enabled       bool
+	configEnabled bool
+	metrics       *accessMetrics
 }
 
 // NewService создаёт сервис кеша с безопасным fallback при отключенном Redis.
-func NewService(client *redis.Client, enabled bool) Service {
+// cfgEnabled — значение CACHE_ENABLED из конфигурации.
+func NewService(client *redis.Client, cfgEnabled bool) Service {
 	return &redisService{
-		client:  client,
-		enabled: enabled && client != nil,
+		client:        client,
+		enabled:       cfgEnabled && client != nil,
+		configEnabled: cfgEnabled,
+		metrics:       newAccessMetrics(),
 	}
+}
+
+func (s *redisService) RedisStatus(ctx context.Context) RedisStatusResponse {
+	return collectRedisStatus(ctx, s.client, s.configEnabled, s.metrics)
 }
 
 func (s *redisService) Get(ctx context.Context, key string, dest interface{}) (bool, error) {
@@ -40,6 +51,7 @@ func (s *redisService) Get(ctx context.Context, key string, dest interface{}) (b
 	raw, err := s.client.Get(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
+			s.metrics.recordGet()
 			return false, nil
 		}
 		log.Printf("кеш: ошибка чтения ключа %q: %v", key, err)
@@ -51,6 +63,7 @@ func (s *redisService) Get(ctx context.Context, key string, dest interface{}) (b
 		return false, err
 	}
 
+	s.metrics.recordGet()
 	return true, nil
 }
 
@@ -69,6 +82,7 @@ func (s *redisService) Set(ctx context.Context, key string, value interface{}, t
 		return err
 	}
 
+	s.metrics.recordSet()
 	return nil
 }
 
@@ -80,6 +94,7 @@ func (s *redisService) Del(ctx context.Context, key string) error {
 		log.Printf("кеш: ошибка удаления ключа %q: %v", key, err)
 		return err
 	}
+	s.metrics.recordDel()
 	return nil
 }
 
@@ -108,6 +123,7 @@ func (s *redisService) DelByPattern(ctx context.Context, pattern string) error {
 		}
 	}
 
+	s.metrics.recordPatternDel()
 	return nil
 }
 
@@ -120,5 +136,6 @@ func (s *redisService) Exists(ctx context.Context, key string) (bool, error) {
 		log.Printf("кеш: ошибка проверки существования ключа %q: %v", key, err)
 		return false, err
 	}
+	s.metrics.recordExists()
 	return count > 0, nil
 }

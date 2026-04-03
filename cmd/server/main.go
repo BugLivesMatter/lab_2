@@ -24,6 +24,7 @@ import (
 	//"github.com/lab2/rest-api/internal/domain"
 	"github.com/lab2/rest-api/internal/cache"
 	categoryhandler "github.com/lab2/rest-api/internal/category/handler"
+	"github.com/lab2/rest-api/internal/health"
 	categoryrepo "github.com/lab2/rest-api/internal/category/repository"
 	categorysvc "github.com/lab2/rest-api/internal/category/service"
 	"github.com/lab2/rest-api/internal/middleware"
@@ -196,6 +197,9 @@ func main() {
 			swaggerHandler(c)
 		})
 	}
+
+	r.GET("/health/redis", cache.StatusHandler(cacheService))
+	r.GET("/health/diagnosis", health.DiagnosisHandler(db, cacheClient, categoryRepo, cacheService, cfg.CacheTTLDefault))
 
 	// ========== PUBLIC ROUTES (без авторизации) ==========
 	publicAuth := r.Group("/auth")

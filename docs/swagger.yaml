@@ -1,5 +1,101 @@
 basePath: /
 definitions:
+  apperror.ErrorResponse:
+    properties:
+      error:
+        example: not found
+        type: string
+    type: object
+  cache.RedisServerInfo:
+    properties:
+      connectedClients:
+        type: integer
+      instantaneousOpsPerSec:
+        type: integer
+      keyspaceHits:
+        type: integer
+      keyspaceMisses:
+        type: integer
+      maxMemoryBytes:
+        type: integer
+      memFragmentationRatio:
+        type: number
+      redisVersion:
+        type: string
+      role:
+        type: string
+      totalCommandsProcessed:
+        type: integer
+      totalConnectionsReceived:
+        type: integer
+      uptimeSeconds:
+        type: integer
+      usedMemoryBytes:
+        type: integer
+      usedMemoryHuman:
+        type: string
+      usedMemoryPeakHuman:
+        type: string
+    type: object
+  cache.RedisStatusResponse:
+    properties:
+      cacheConfigEnabled:
+        description: CacheConfigEnabled — значение CACHE_ENABLED из конфигурации.
+        type: boolean
+      checkedAt:
+        description: CheckedAt — время выполнения проверки (UTC, RFC3339Nano).
+        type: string
+      clientConfigured:
+        description: ClientConfigured — клиент Redis был успешно инициализирован (не
+          nil).
+        type: boolean
+      connected:
+        description: Connected — успешный PING на момент запроса.
+        type: boolean
+      error:
+        description: Error — текст ошибки PING / INFO / DBSIZE (если была).
+        type: string
+      isEnabled:
+        description: 'IsEnabled — кеш считается включённым: CACHE_ENABLED=true и клиент
+          создан.'
+        type: boolean
+      keysInDb:
+        description: KeysInDB — приблизительное число ключей в текущей БД (DBSIZE).
+        type: integer
+      lastSuccessfulAccessAt:
+        description: LastSuccessfulAccessAt — последнее успешное обращение приложения
+          к Redis (UTC).
+        type: string
+      pingLatencyMs:
+        description: PingLatencyMs — задержка PING в миллисекундах.
+        type: number
+      server:
+        allOf:
+        - $ref: '#/definitions/cache.RedisServerInfo'
+        description: Server — выборка полей из Redis INFO.
+      usage:
+        allOf:
+        - $ref: '#/definitions/cache.RedisUsageMetrics'
+        description: Usage — агрегированная нагрузка по операциям кеша с момента старта
+          процесса.
+    type: object
+  cache.RedisUsageMetrics:
+    properties:
+      delByPattern:
+        type: integer
+      delSingle:
+        type: integer
+      existsChecks:
+        type: integer
+      getRequests:
+        type: integer
+      hitRatioEstimate:
+        type: number
+      setWrites:
+        type: integer
+      totalCacheOperations:
+        type: integer
+    type: object
   domain.UserResponse:
     properties:
       createdAt:
@@ -27,7 +123,7 @@ definitions:
           $ref: '#/definitions/dto.CategoryResponse'
         type: array
       meta:
-        $ref: '#/definitions/dto.Meta'
+        $ref: '#/definitions/pagination.Meta'
     type: object
   dto.CategoryResponse:
     properties:
@@ -147,21 +243,6 @@ definitions:
         example: успешный выход
         type: string
     type: object
-  dto.Meta:
-    properties:
-      limit:
-        example: 10
-        type: integer
-      page:
-        example: 1
-        type: integer
-      total:
-        example: 42
-        type: integer
-      totalPages:
-        example: 5
-        type: integer
-    type: object
   dto.OAuthCallbackResponse:
     properties:
       email:
@@ -220,7 +301,7 @@ definitions:
           $ref: '#/definitions/dto.ProductResponse'
         type: array
       meta:
-        $ref: '#/definitions/dto.Meta'
+        $ref: '#/definitions/pagination.Meta'
     type: object
   dto.ProductResponse:
     properties:
@@ -356,17 +437,122 @@ definitions:
     - price
     - status
     type: object
-  handler.AppErrorResponse:
-    properties:
-      error:
-        example: invalid category id
-        type: string
-    type: object
   handler.AuthErrorResponse:
     properties:
       error:
         example: invalid_or_expired_token
         type: string
+    type: object
+  health.DiagnosisComparison:
+    properties:
+      postgresqlMs:
+        type: number
+      redisFasterThanPostgresPercent:
+        description: |-
+          RedisFasterPercent — доля сокращения времени относительно PostgreSQL: (pg-redis)/pg*100 при pg>redis.
+          Это не «во сколько раз быстрее»; множитель см. RedisSpeedupFactor (= pg/redis).
+        type: number
+      redisMs:
+        type: number
+      redisSpeedupFactor:
+        type: number
+      summary:
+        type: string
+    type: object
+  health.DiagnosisPostgresSection:
+    properties:
+      approxPayloadJsonBytes:
+        description: ApproxPayloadBytes — размер JSON тела, как у cache.Service.Set
+          (для справки).
+        type: integer
+      cacheKey:
+        type: string
+      limit:
+        type: integer
+      listError:
+        type: string
+      listLatencyMs:
+        description: ListMs — только CategoryRepository.List (Count + Find внутри
+          репозитория).
+        type: number
+      listRepositoryMethod:
+        description: Ниже — тот же путь данных, что GET /categories при промахе кеша.
+        type: string
+      listRowCount:
+        description: ListRowCount — число записей на странице.
+        type: integer
+      ok:
+        type: boolean
+      page:
+        type: integer
+      simpleError:
+        type: string
+      simpleLatencyMs:
+        type: number
+      simpleQuery:
+        type: string
+      total:
+        type: integer
+    type: object
+  health.DiagnosisRedisSection:
+    properties:
+      cacheError:
+        type: string
+      cacheGetHit:
+        type: boolean
+      cacheGetLatencyMs:
+        type: number
+      cacheSetLatencyMs:
+        description: CacheSetMs / CacheGetMs — те же вызовы, что в categoryService.List.
+        type: number
+      clientNotConfigured:
+        type: boolean
+      ok:
+        type: boolean
+      pingError:
+        type: string
+      pingLatencyMs:
+        type: number
+    type: object
+  health.DiagnosisResponse:
+    properties:
+      checkedAt:
+        type: string
+      comparisonMissVsHit:
+        allOf:
+        - $ref: '#/definitions/health.DiagnosisComparison'
+        description: ComparisonMissVsHit — полный промах (List + cache.Set) vs cache
+          hit (Get), как два последовательных запроса GET /categories.
+      comparisonSimple:
+        allOf:
+        - $ref: '#/definitions/health.DiagnosisComparison'
+        description: ComparisonSimple — SELECT 1 vs PING.
+      comparisonWorkload:
+        allOf:
+        - $ref: '#/definitions/health.DiagnosisComparison'
+        description: ComparisonWorkload — repository.List (как при промахе кеша) vs
+          cache.Get (как при попадании).
+      notes:
+        type: string
+      postgresql:
+        $ref: '#/definitions/health.DiagnosisPostgresSection'
+      redis:
+        $ref: '#/definitions/health.DiagnosisRedisSection'
+    type: object
+  pagination.Meta:
+    properties:
+      limit:
+        example: 10
+        type: integer
+      page:
+        example: 1
+        type: integer
+      total:
+        example: 42
+        type: integer
+      totalPages:
+        example: 5
+        type: integer
     type: object
 host: localhost:4200
 info:
@@ -780,23 +966,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
       security:
       - CookieAuth: []
       summary: Список категорий
@@ -822,23 +1004,23 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
       security:
       - CookieAuth: []
       summary: Создать категорию
@@ -860,23 +1042,27 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/apperror.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
       security:
       - CookieAuth: []
       summary: Удалить категорию (soft delete)
@@ -899,23 +1085,23 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
       security:
       - CookieAuth: []
       summary: Получить категорию по UUID
@@ -946,23 +1132,23 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
       security:
       - CookieAuth: []
       summary: Частичное обновление категории
@@ -993,28 +1179,77 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
       security:
       - CookieAuth: []
       summary: Полное обновление категории
       tags:
       - categories
+  /health/diagnosis:
+    get:
+      description: Использует CategoryRepository.List и cache.Service с тем же ключом
+        и JSON, что CategoryService.List. Перед замером удаляет кеш страницы (cache.Del).
+        Параметры page и limit — как у GET /categories.
+      parameters:
+      - default: 1
+        description: Номер страницы
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Размер страницы (макс. 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/health.DiagnosisResponse'
+      summary: Диагностика БД и Redis (как GET /categories)
+      tags:
+      - health
+  /health/redis:
+    get:
+      description: PING, INFO, DBSIZE, счётчики операций кеша, время последнего успешного
+        доступа приложения к Redis.
+      parameters:
+      - description: Произвольное значение (например 1) для явного запроса статуса
+        in: query
+        name: RedisStatus
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/cache.RedisStatusResponse'
+        "503":
+          description: Redis недоступен (PING не прошёл), при этом клиент был сконфигурирован
+          schema:
+            $ref: '#/definitions/cache.RedisStatusResponse'
+      summary: Статус Redis и метрики кеша
+      tags:
+      - health
   /products:
     get:
       parameters:
@@ -1042,23 +1277,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
       security:
       - CookieAuth: []
       summary: Список продуктов
@@ -1084,23 +1315,23 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
       security:
       - CookieAuth: []
       summary: Создать продукт
@@ -1122,23 +1353,23 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
       security:
       - CookieAuth: []
       summary: Удалить продукт (soft delete)
@@ -1161,23 +1392,23 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
       security:
       - CookieAuth: []
       summary: Получить продукт по UUID
@@ -1208,23 +1439,23 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
       security:
       - CookieAuth: []
       summary: Частичное обновление продукта
@@ -1255,23 +1486,23 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handler.AppErrorResponse'
+            $ref: '#/definitions/apperror.ErrorResponse'
       security:
       - CookieAuth: []
       summary: Полное обновление продукта
